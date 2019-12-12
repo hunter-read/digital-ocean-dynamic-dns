@@ -71,7 +71,7 @@ def main():
     except NameError:
         pass
     logging.basicConfig(
-        filename="/usr/local/var/log/digital-ocean-dns-updater.log",
+        filename="/var/log/digital-ocean/digital-ocean-dns-updater.log",
         level=log_level,
         format="%(asctime)s:%(levelname)s:%(message)s"
         )

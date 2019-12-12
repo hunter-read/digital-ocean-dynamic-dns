@@ -1,13 +1,13 @@
-#Systemd file for hover dns service
+#Systemd file for Digital Ocean dynamic dns service
 
 [Unit]
-Description=Hover dns script
+Description=Digital Ocean dynamic dns script
 
 [Service]
 Type=simple
 User=USER
 Group=USER
-WorkingDirectory=/home
+WorkingDirectory=/usr/local/etc/digital-ocean
 ExecStart=/usr/local/etc/digital-ocean/digital-ocean-dns-updater.py
 
 [Install]
