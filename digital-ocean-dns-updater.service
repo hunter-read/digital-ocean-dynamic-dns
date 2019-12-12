@@ -1,0 +1,14 @@
+#Systemd file for hover dns service
+
+[Unit]
+Description=Hover dns script
+
+[Service]
+Type=simple
+User=USER
+Group=USER
+WorkingDirectory=/home
+ExecStart=/usr/local/etc/digital-ocean/digital-ocean-dns-updater.py
+
+[Install]
+WantedBy=multi-user.target

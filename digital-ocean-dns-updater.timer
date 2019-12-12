@@ -1,0 +1,10 @@
+[Unit]
+Description=Check and Update dns ever 15 min
+
+[Timer]
+OnBootSec=0min
+OnCalendar=*:0,15,30,45
+Unit=digital-ocean-dns-updater.service
+
+[Install]
+WantedBy=multi-user.target

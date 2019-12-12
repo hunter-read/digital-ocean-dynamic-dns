@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run with sudo"
+  exit
+fi
+
+mkdir /usr/local/etc/digital-ocean
+cp digital-ocean-dns-updater.py /usr/local/etc/digital-ocean/
+
+touch /usr/local/etc/digital-ocean/.env
+
+echo "Please enter your api key for digital ocean: "
+read -s api_key
+
+echo "API_KEY=$api_key" > /usr/local/etc/digital-ocean/.env
+sed "s/USER/$USER/g" digital-ocean-dns-updater.service > /etc/systemd/system/digital-ocean-dns-updater.service
+cp digital-ocean-dns-updater.timer /etc/systemd/system/
+systemctl daemon-reload
+systemctl start hover.timer
+systemctl enable hover.timer
