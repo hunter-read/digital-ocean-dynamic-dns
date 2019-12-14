@@ -57,6 +57,18 @@ class DigitalOceanAPI(object):
         except requests.exceptions.HTTPError as err:
             raise ApiException(err)
 
+
+def update_record(client, domain_name, domain_record, current_ip):
+    if domain_record.get("data") == current_ip:
+        logging.debug(f'{domain_record.get("type")} record Ip is same for {domain_record.get("name")}.{domain_name}')
+        return
+    if domain_record.get("id") is None:
+        logging.error(f'Id is null for domain {domain_name} and domain record {domain_record}')
+        return
+
+    logging.info(f'Updating {domain_record.get("type")} record IP for {domain_record.get("name")}.{domain_name} from {domain_record.get("data")} to {current_ip}')
+    client.call("put", f'domains/{domain_name}/records/{domain_record.get("id")}', data={"data": current_ip})
+
 def main():
     '''
     Main function for updating dns with digital API
@@ -64,12 +76,14 @@ def main():
     load_dotenv()
     #set log level from .env or to info
     log_level=logging.INFO
-    try:
-        level = os.getenv('LOG_LEVEL')
-        if level is not None:
-            log_level = getattr(logging, level, logging.INFO)
-    except NameError:
-        pass
+    level = os.getenv('LOG_LEVEL')
+    if level is not None:
+        log_level = getattr(logging, level, logging.INFO)
+
+    ipv6_enabled=False
+    if os.getenv('IPV6') is not None:
+        ipv6_enabled=bool(os.getenv('IPV6'))
+
     logging.basicConfig(
         filename="/var/log/digital-ocean/digital-ocean-dns-updater.log",
         level=log_level,
@@ -77,12 +91,21 @@ def main():
         )
 
     #get current ip address
-    ip_request = requests.post("https://bot.whatismyipaddress.com")
-    if not ip_request.ok:
-        logging.error("Unable to retrieve IP address")
+    ipv4_request = requests.post("https://ipv4.icanhazip.com")
+    if not ipv4_request.ok:
+        logging.error("Unable to retrieve IPv4 address")
         sys.exit(1)
-    current_ip = ip_request.content.decode("utf-8")
-    current_ip='67.161.80.5'
+    current_ipv4 = ipv4_request.content.decode("utf-8").strip()
+    logging.debug(f'Current IPv4 address is {current_ipv4}')
+
+    if ipv6_enabled:
+        logging.debug("IPv6 is enabled")
+        ipv6_request = requests.post("https://ipv6.icanhazip.com")
+        if not ipv6_request.ok:
+            logging.error("Unable to retrieve IPv6 address")
+            sys.exit(1)
+        current_ipv6 = ipv6_request.content.decode("utf-8").strip()
+        logging.debug(f'IPv6 is enabled: Current IPv6 address is {current_ipv6}')
 
     #update dns record if necessary
     try:
@@ -92,15 +115,10 @@ def main():
             domain_name = domain.get("name")
             domain_records = client.call("get", f'domains/{domain_name}/records')
             for domain_record in domain_records.get("domain_records"):
-                if domain_record.get("type") == 'A' and domain_record.get("data") != current_ip:
-                    if domain_record.get("id") is not None:
-                        logging.info(f'Updating DNS Ip for {domain_record.get("name")}.{domain_name}')
-                        client.call("put", f'domains/{domain_name}/records/{domain_record.get("id")}', data={"data": current_ip})
-                    else:
-                        logging.error(f'Id is null for domain {domain_name} and domain record {domain_record}')
-
-                elif domain_record.get("type") == 'A':
-                    logging.debug(f'Ip is same for {domain_record.get("name")}.{domain_name}')
+                if domain_record.get("type") == 'A':
+                    update_record(client, domain_name, domain_record, current_ipv4)
+                elif domain_record.get("type") == 'AAAA' and ipv6_enabled:
+                    update_record(client, domain_name, domain_record, current_ipv6)
     except ApiException as err:
         logging.error(err.message)
         exit(1)
