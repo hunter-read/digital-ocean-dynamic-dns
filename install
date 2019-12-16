@@ -20,7 +20,7 @@ read -s api_key
 echo "API_KEY=$api_key" > /usr/local/etc/digital-ocean/.env
 
 has_ipv6=$(curl -sL -w "%{http_code}" "https://ipv6.icanhazip.com" -o /dev/null --connect-timeout 3 --max-time 5)
-echo $has_ipv6
+
 if [ -f /proc/net/if_inet6 ] && [ "$has_ipv6" == "200" ]; then
   while true; do
     read -p "I see you have IPv6 access. Do you want to enable it to update 'AAAA' records as well? [y|n] " yn
