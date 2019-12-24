@@ -15,27 +15,13 @@ chown -R $SUDO_USER:$SUDO_USER /usr/local/etc/digital-ocean
 mkdir /var/log/digital-ocean
 chown -R $SUDO_USER:$SUDO_USER /var/log/digital-ocean
 
-echo "Please enter your api key for digital ocean (https://cloud.digitalocean.com/account/api/tokens): "
-read -s api_key
-echo "API_KEY=$api_key" > /usr/local/etc/digital-ocean/.env
+echo "API_KEY=$DIGITAL_OCEAN_API_KEY" > /usr/local/etc/digital-ocean/.env
 
 has_ipv6=$(curl -sL -w "%{http_code}" "https://ipv6.icanhazip.com" -o /dev/null --connect-timeout 3 --max-time 5)
 if [ -f /proc/net/if_inet6 ] && [ "$has_ipv6" == "200" ]; then
-  while true; do
-    read -p "I see you have IPv6 access. Do you want to enable it to update 'AAAA' records as well? [y|n] " yn
-    case $yn in
-      [Yy]* )
-        echo "Enabled IPv6 for AAAA records"
-        echo "IPV6=true" >> /usr/local/etc/digital-ocean/.env
-        break
-        ;;
-      [Nn]* )
-        echo "IPV6=false" >> /usr/local/etc/digital-ocean/.env
-        break
-        ;;
-
-    esac
-  done
+    echo "IPV6=true" >> /usr/local/etc/digital-ocean/.env
+else 
+    echo "IPV6=false" >> /usr/local/etc/digital-ocean/.env
 fi
 
 sed "s/USER/$SUDO_USER/g" digital-ocean-dns-updater.service > /etc/systemd/system/digital-ocean-dns-updater.service
