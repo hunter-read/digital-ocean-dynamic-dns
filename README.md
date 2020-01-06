@@ -12,4 +12,6 @@ Python3 requirements can be install with `pip3 install -r requirements.txt`
 
 Python script and systemd services can be installed with `sudo ./install`, all you need is your api key (which is store locally on your device only)
 
+Installation can be done in a script with `sudo API_KEY="your_api_key_here" ./install --non-interactive`, this will set ipv6 support to enabled if network requirements are met
+
 Python logs can be found in /var/log/digital-ocean/digital-ocean-dns-updater.log

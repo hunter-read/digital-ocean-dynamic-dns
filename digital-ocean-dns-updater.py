@@ -100,12 +100,17 @@ def main():
 
     if ipv6_enabled:
         logging.debug("IPv6 is enabled")
-        ipv6_request = requests.post("https://ipv6.icanhazip.com")
-        if not ipv6_request.ok:
-            logging.error("Unable to retrieve IPv6 address")
-            sys.exit(1)
-        current_ipv6 = ipv6_request.content.decode("utf-8").strip()
-        logging.debug(f'IPv6 is enabled: Current IPv6 address is {current_ipv6}')
+        try:
+            ipv6_request = requests.post("https://ipv6.icanhazip.com")
+            if not ipv6_request.ok:
+                logging.error("Unable to retrieve IPv6 address")
+                sys.exit(1)
+            current_ipv6 = ipv6_request.content.decode("utf-8").strip()
+            logging.debug(f'IPv6 is enabled: Current IPv6 address is {current_ipv6}')
+        except ConnectionError:
+            ipv6_enabled=False
+
+
 
     #update dns record if necessary
     try:
