@@ -91,12 +91,16 @@ def main():
         )
 
     #get current ip address
-    ipv4_request = requests.post("https://ipv4.icanhazip.com")
-    if not ipv4_request.ok:
+    try:
+        ipv4_request = requests.post("https://ipv4.icanhazip.com")
+        if not ipv4_request.ok:
+            logging.error("Unable to retrieve IPv4 address")
+            exit(1)
+        current_ipv4 = ipv4_request.content.decode("utf-8").strip()
+        logging.debug(f'Current IPv4 address is {current_ipv4}')
+    except ConnectionError:
         logging.error("Unable to retrieve IPv4 address")
-        sys.exit(1)
-    current_ipv4 = ipv4_request.content.decode("utf-8").strip()
-    logging.debug(f'Current IPv4 address is {current_ipv4}')
+        exit(1)
 
     if ipv6_enabled:
         logging.debug("IPv6 is enabled")
@@ -104,10 +108,11 @@ def main():
             ipv6_request = requests.post("https://ipv6.icanhazip.com")
             if not ipv6_request.ok:
                 logging.error("Unable to retrieve IPv6 address")
-                sys.exit(1)
+                exit(1)
             current_ipv6 = ipv6_request.content.decode("utf-8").strip()
             logging.debug(f'IPv6 is enabled: Current IPv6 address is {current_ipv6}')
         except ConnectionError:
+            logging.error("Unable to retrieve IPv6 address")
             ipv6_enabled=False
 
 
